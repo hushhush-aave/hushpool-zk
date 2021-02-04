@@ -188,14 +188,27 @@ describe("ERC20 ZKPool", function () {
               .map(x => x.reverse())
               .slice(0, 2),
             c: websnarkUtils.stringifyBigInts(proof.pi_c).slice(0, 2),
-          };        
-    
+        }; 
+
+        console.log(proof);
+        console.log(solidityProof);
+    /*
         let proofList = [
             solidityProof["a"][0],solidityProof["a"][1],
             solidityProof["b"][0][0],solidityProof["b"][0][1],
             solidityProof["b"][1][0],solidityProof["b"][1][1],
             solidityProof["c"][0],solidityProof["c"][1]
         ];
+*/      
+        // There seem to be a difference on how we showcase it in solidity and js
+        // We need to make a y,x for the b coords.
+        let proofList = [
+            proof["pi_a"][0],proof["pi_a"][1],
+            proof["pi_b"][0][1],proof["pi_b"][0][0],
+            proof["pi_b"][1][1],proof["pi_b"][1][0],
+            proof["pi_c"][0],proof["pi_c"][1]
+        ];
+
 
         // We try it
         console.log((await pool.root()).toString());
