@@ -119,7 +119,6 @@ abstract contract ZKPool is IncrementalMerkleTree, Verifier {
             verifyProof(a, b, c, publicSignals),
             "The proof is invalid"
         );
-        console.log("IS verified");
 
         _;
     }

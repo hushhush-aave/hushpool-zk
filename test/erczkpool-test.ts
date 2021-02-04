@@ -190,7 +190,6 @@ describe("ERC20 ZKPool", function () {
             c: websnarkUtils.stringifyBigInts(proof.pi_c).slice(0, 2),
           };        
     
-        console.log(proof);
         let proofList = [
             solidityProof["a"][0],solidityProof["a"][1],
             solidityProof["b"][0][0],solidityProof["b"][0][1],
@@ -198,15 +197,12 @@ describe("ERC20 ZKPool", function () {
             solidityProof["c"][0],solidityProof["c"][1]
         ];
 
-
-
-        console.log("Current root: ", secondRoot);
-        console.log("ProofRoot: ", root);
-
         // We try it
+        console.log((await pool.root()).toString());
         await pool.connect(owner).withdraw(await owner.getAddress(), proofList, withdrawAmount, root, nullifier, newLeafCommit);
 
         console.log((await token.balanceOf(pool.address)).toString());
+        console.log((await pool.root()).toString());
 
         //console.log(proof);
 
