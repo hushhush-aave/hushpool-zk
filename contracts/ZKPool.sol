@@ -38,22 +38,24 @@ abstract contract ZKPool is IncrementalMerkleTree, Verifier {
     function withdraw(
         address _to,
         uint256[8] memory _proof,
-        uint256 _withdrawAmount,
-        uint256 _root,
-        uint256 _nullifier,
-        uint256 _newLeaf
+        uint256[5] memory _publicSignals
+//        uint128 _withdrawAmount,
+//        uint128 _fee,
+//        uint256 _root,
+//        uint256 _nullifier,
+//        uint256 _newLeaf
     )
         public
-        isValidProof(_proof, _withdrawAmount, _root, _nullifier, _newLeaf)
+        isValidProof(_proof, _to, _publicSignals)
     {
-        nullifiers[_nullifier] = true;
-        emit NullifierAdd(_nullifier);
+        nullifiers[_publicSignals[3]] = true;
+        emit NullifierAdd(_publicSignals[3]);
 
-        insertLeaf(_newLeaf);
-        _processWithdraw(_to, _withdrawAmount);
+        insertLeaf(_publicSignals[4]);
+        _processWithdraw(_to, _publicSignals[0], _publicSignals[1]);
     }
 
-    function _processWithdraw(address _to, uint256 _withdrawAmount) internal virtual;
+    function _processWithdraw(address _to, uint256 _withdrawAmount, uint256 _fee) internal virtual;
 
     /**
      * Checks if all values within pi_a, pi_b, and pi_c of a zk-SNARK are less than the scalar field.
@@ -74,21 +76,15 @@ abstract contract ZKPool is IncrementalMerkleTree, Verifier {
             _proof[6] < SNARK_SCALAR_FIELD &&
             _proof[7] < SNARK_SCALAR_FIELD;
     }
-
-    /**
-     * @notice A modifier which ensures that the proof is valid
-     * @param _proof The proof elements
-     * @param _withdrawAmount The amount to withdraw from the prool
-     * @param _root The root used in the proof
-     * @param _nullifier The nullifier for the spent leaf
-     * @param _newLeaf The fresh leaf, e.g., concealed output
-     */
     modifier isValidProof(
         uint256[8] memory _proof,
-        uint256 _withdrawAmount,
+        address _receiver,
+        uint256[5] memory _publicSignals
+/*        uint128 _withdrawAmount,
+        uint128 _fee,
         uint256 _root,
         uint256 _nullifier,
-        uint256 _newLeaf
+        uint256 _newLeaf*/
     ) {
         require(
             areAllValidFieldElements(_proof),
@@ -96,22 +92,22 @@ abstract contract ZKPool is IncrementalMerkleTree, Verifier {
         );
 
         require(
-            _nullifier < SNARK_SCALAR_FIELD,
+            _publicSignals[4] < SNARK_SCALAR_FIELD,
             "The nullifier hash is larger than the field"
         );
 
-        require(nullifiers[_nullifier] == false, "Reuse of nullifier");
+        require(nullifiers[_publicSignals[3]] == false, "Reuse of nullifier");
 
-        require(rootHistory[_root], "Root not seen");
+        require(rootHistory[_publicSignals[2]], "Root not seen");
 
         // We need not validate that _newLeaf < SNARK_SCALAR_FIELD as it is already done inside insertleaf.
         // But we do it early to not spend unnecessary gas here.
         require(
-            _newLeaf < SNARK_SCALAR_FIELD,
+            _publicSignals[4] < SNARK_SCALAR_FIELD,
             "The leaf is larger than the field"
         );
 
-        uint256[4] memory publicSignals = [_nullifier, _newLeaf, _withdrawAmount, _root];
+        uint256[6] memory publicSignals = [_publicSignals[3], _publicSignals[4], uint256(uint128(_publicSignals[0])), _publicSignals[2], uint256(_receiver), uint256(uint128(_publicSignals[1]))];
 
         (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) = unpackProof(_proof);
 
@@ -167,6 +163,10 @@ abstract contract ZKPool is IncrementalMerkleTree, Verifier {
             [[_proof[2], _proof[3]], [_proof[4], _proof[5]]],
             [_proof[6], _proof[7]]
         );
+    }
+
+    function leafCount() public view returns(uint256){
+        return nextLeafIndex;
     }
 
 }

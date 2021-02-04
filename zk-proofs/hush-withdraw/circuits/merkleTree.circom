@@ -1,4 +1,4 @@
-include "../../node_modules/circomlib/circuits/mimcsponge.circom";
+include "../../../node_modules/circomlib/circuits/mimcsponge.circom";
 
 // This is the implementation from Tornadocash, with a minor update to the MiMCSponge
 // Old: "MiMCSponge(2, 1);", new: "MiMCSponge(2, 220, 1);".

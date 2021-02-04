@@ -1,5 +1,5 @@
-include "../../node_modules/circomlib/circuits/comparators.circom";
-include "../../node_modules/circomlib/circuits/bitify.circom";
+include "../../../node_modules/circomlib/circuits/comparators.circom";
+include "../../../node_modules/circomlib/circuits/bitify.circom";
 include "merkleTree.circom";
 
 template IndexToPath(n) {
@@ -53,6 +53,9 @@ template CommitmentHasher(){
 template Withdraw(levels) {
 	signal input withdrawAmount;
 	signal input root;
+	signal input receiver;
+	// signal input relayer; // We actually don't need the relayer to be specified.
+	signal input fee;
 
 	// The old commitment
 	signal private input oldSecret;
@@ -75,13 +78,17 @@ template Withdraw(levels) {
 	// Intermediates
 	signal balance;
 	signal oldLeaf;
+	signal sumOut;
 
-	// Ensure that oldBalance >= withdraw amount. Then set balance.
+	// Ensure that oldBalance >= withdraw + fee. Then set balance. 
+	// Notice, that if we are not forcing the inputs, this can wrap around! 
+	// The largest GreaterEqThan seems to be 252 bits, were inputs can be 254, e.g., we can make wrap around and still pass the checks.
 	component greaterThan = GreaterEqThan(128);
+	sumOut <== withdrawAmount + fee; // This can be dangerous and wrap if we don't force solidity to 128 bits;
 	oldBalance ==> greaterThan.in[0];
-	withdrawAmount ==> greaterThan.in[1];
+	sumOut ==> greaterThan.in[1];
 	greaterThan.out === 1;
-	balance <== oldBalance - withdrawAmount;
+	balance <== oldBalance - sumOut;
 
 	// Recreate commitment, e.g., if we can do this, we know.
 	component oldCommitment = CommitmentHasher();
@@ -115,6 +122,15 @@ template Withdraw(levels) {
 	nonce ==> newCommitment.nonce;
 	balance ==> newCommitment.balance;
 	commitment <== newCommitment.commitment;
+
+	// As they do in tornado, use the receiver, relayer and fee inside the circuit to ensurer that they cannot be tampered with.
+	signal receiverSquared;
+	//signal relayerSquared;
+	signal feeSquared;
+
+	receiverSquared <== receiver * receiver;
+	//relayerSquared <== relayer * relayer;
+	feeSquared <== fee * fee;
 }
 
 component main = Withdraw(3);

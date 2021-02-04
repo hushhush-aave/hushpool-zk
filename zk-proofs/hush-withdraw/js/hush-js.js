@@ -1,5 +1,7 @@
 const mimcjs = require("./mimcsponge.js");
 const random = require('random-bigint');
+const snarkjs = require("snarkjs");
+
 
 exports.getZeroValue = () => {
     // uint256(keccak256(abi.encodePacked("HushHush"))) % SNARK_SCALAR_FIELD;
@@ -19,8 +21,16 @@ exports.createLeaf = (balance) => {
     };
 }
 
+exports.getInnerCommitmentFromLeaf = (leaf) => {
+    return exports.getInnerCommitment(leaf.secret, leaf.nonce);
+}
+
 exports.getInnerCommitment = (secret, nonce) => {
     return mimcjs.multiHash([secret, nonce], 0, 1);
+}
+
+exports.getCommitmentFromLeaf = (leaf) => {
+    return exports.getCommitment(leaf.balance, leaf.secret, leaf.nonce);
 }
 
 exports.getCommitment = (balance, secret, nonce) => {
@@ -66,12 +76,43 @@ exports.buildTree = (depth, commitments) => {
     return tree;
 }
 
+exports.getProof = (oldLeaf, index, tree, withdrawAmount, fee, receiver) => {
+    return new Promise(async function(resolve, reject){
+        let { input, newLeaf } = exports.createInput(oldLeaf, index, withdrawAmount, receiver, fee, tree);
 
-exports.createInput = (oldLeaf, index, newLeaf, tree) => {
-    let withdrawAmount = oldLeaf.balance - newLeaf.balance;
-    if (withdrawAmount < 0) {
-        throw "ERROR, cannot withdraw negative amount";
-    }
+        const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, "./zk-proofs/hush-withdraw/withdraw.wasm", "./zk-proofs/hush-withdraw/withdraw_final.zkey");
+    
+        let solidityProof = exports.getSolidityProofArray(proof);
+        let soliditySignals = exports.getSoliditySignalsArray(publicSignals);
+    
+        resolve({ solidityProof, soliditySignals, newLeaf });    
+    });
+}
+
+
+exports.getSolidityProofArray = (proof) => {
+    let proofList = [
+        proof["pi_a"][0], proof["pi_a"][1],
+        proof["pi_b"][0][1], proof["pi_b"][0][0],
+        proof["pi_b"][1][1], proof["pi_b"][1][0],
+        proof["pi_c"][0], proof["pi_c"][1]
+    ];
+    return proofList;
+}
+
+exports.getSoliditySignalsArray = (publicSignals) => {
+    let nullifier = publicSignals[0];
+    let newLeafCommit = publicSignals[1];
+    let withdrawAmount = publicSignals[2];
+    let root = publicSignals[3];
+    let _receiver = publicSignals[4];
+    let fee = publicSignals[5];
+
+    let publicList = [withdrawAmount, fee, root, nullifier, newLeafCommit];
+    return publicList;
+}
+
+exports.createInput = (oldLeaf, index, withdrawAmount, receiverAddr, fee, tree) => {
 
     let path = [];
     let pathIndices = [];
@@ -99,9 +140,12 @@ exports.createInput = (oldLeaf, index, newLeaf, tree) => {
     }
 
     if (tree.root != currVal) {
-        throw "Root not matching";
+        console.log("Root not matching");
+        console.log(tree);
     }
 
+    let newBalance = oldLeaf.balance - (withdrawAmount + fee);
+    let newLeaf = exports.createLeaf(newBalance);
 
     let input = {
         "withdrawAmount": withdrawAmount.toString(),
@@ -112,10 +156,12 @@ exports.createInput = (oldLeaf, index, newLeaf, tree) => {
         "index": index,
         "pathElements": path.map(element => element.toString()),
         "secret": newLeaf.secret.toString(),
-        "nonce": newLeaf.nonce.toString()
+        "nonce": newLeaf.nonce.toString(),
+        "fee": fee.toString(),
+        "receiver": receiverAddr.toString()
     }
 
-    return input;
+    return {input, newLeaf};
 
 }
 

@@ -34,16 +34,9 @@ snarkjs powersoftau prepare phase2 pot14_0001.ptau pot14_final.ptau -v
 ```bash
 # compile circuit
 circom circuits/withdraw.circom --r1cs --wasm --sym
-
-# information and constraints
 snarkjs info -c withdraw.r1cs
-#snarkjs print -r circuit.r1cs -s circuit.sym
-
-# Start a new zkey and make a contribution
 snarkjs zkey new withdraw.r1cs pot14/pot14_final.ptau withdraw_0000.zkey
 snarkjs zkey contribute withdraw_0000.zkey withdraw_final.zkey --name="1st Contributor Name" -v 
-
-# Export the verification key
 snarkjs zkey export verificationkey withdraw_final.zkey verification_key.json
 
 # Export a solidity verifier
@@ -62,5 +55,4 @@ snarkjs groth16 verify verification_key.json public.json proof.json
 
 
 // It seems like the major issue is how to format it.
-
 https://github.com/kendricktan/hello-world-zk-dapp/blob/master/packages/scripts/index.js

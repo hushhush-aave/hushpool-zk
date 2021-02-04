@@ -37,8 +37,11 @@ contract ERCZKPool is ZKPool {
         );
     }
 
-    function _processWithdraw(address _to, uint256 _withdrawAmount) internal override {
+    function _processWithdraw(address _to, uint256 _withdrawAmount, uint256 _fee) internal override {
         IERC20(token).safeTransfer(_to, _withdrawAmount);
+        if (_fee > 0){
+            IERC20(token).safeTransfer(msg.sender, _fee);
+        }
     }
 
 }

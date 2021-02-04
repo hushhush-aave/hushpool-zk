@@ -13,7 +13,6 @@ import {
 
 //import {IAToken} from "./aave/interfaces/IAToken.sol";
 import {IERC20} from "./aave/dependencies/openzeppelin/contracts/IERC20.sol";
-
 import {Errors} from "./aave/protocol/libraries/helpers/Errors.sol";
 
 import {
@@ -23,8 +22,6 @@ import {WadRayMath} from "./aave/protocol/libraries/math/WadRayMath.sol";
 import {
     SafeERC20
 } from "./aave/dependencies/openzeppelin/contracts/SafeERC20.sol";
-
-// Snark Proofs
 
 import {ZKPool} from "./ZKPool.sol";
 
@@ -60,9 +57,16 @@ contract AaveZKPool is ZKPool {
         );
     }
 
-    function _processWithdraw(address _to, uint256 _withdrawAmount) internal override {
+    function _processWithdraw(address _to, uint256 _withdrawAmount, uint256 _fee)
+        internal
+        override
+    {
         uint256 _withdrawScaled = _toAtokens(_withdrawAmount);
         IERC20(aToken).safeTransfer(_to, _withdrawScaled);
+        if(_fee > 0){
+            uint256 _feeScaled = _toAtokens(_fee);
+            IERC20(aToken).safeTransfer(msg.sender, _feeScaled);
+        }
     }
 
     // Views
@@ -93,5 +97,4 @@ contract AaveZKPool is ZKPool {
                 lendingPool.getReserveNormalizedIncome(underlyingAsset)
             );
     }
-
 }
