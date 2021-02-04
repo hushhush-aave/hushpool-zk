@@ -3,6 +3,8 @@ const hush = require("./hush-js.js");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
 
+const websnarkUtils = require("websnark/tools/stringifybigint");
+
 async function createProof(oldLeaf, index, tree, show = false) {
     let withdrawAmount = hush.getRandom(4);
     let newBalance = withdrawAmount > oldLeaf.balance ? oldLeaf.balance : oldLeaf.balance - withdrawAmount;
@@ -16,6 +18,9 @@ async function createProof(oldLeaf, index, tree, show = false) {
     }
 
     const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, "../withdraw.wasm", "../withdraw_final.zkey");
+
+
+    await websnarkUtils.toSolidityInput(proof);
 
     if (show) {
         console.log(JSON.stringify(proof, null, 4));
@@ -45,6 +50,7 @@ async function run() {
         let oldLeaf = leafs[index];
 
         let { proof, publicSignals, newLeaf } = await createProof(oldLeaf, index, tree, false);
+
         let nullifier = publicSignals[0];
         let newCommitment = publicSignals[1];
         let withdrawAmount = publicSignals[2];

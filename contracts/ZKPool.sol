@@ -8,8 +8,9 @@ import "hardhat/console.sol";
 import {IncrementalMerkleTree} from "./semaphore/IncrementalMerkleTree.sol";
 import {SnarkConstants} from "./semaphore/SnarkConstants.sol";
 import {MiMC} from "./semaphore/MiMC.sol";
+import {Verifier} from "./withdrawVerifier.sol";
 
-abstract contract ZKPool is IncrementalMerkleTree {
+abstract contract ZKPool is IncrementalMerkleTree, Verifier {
     mapping(uint256 => bool) public nullifiers;
     uint256 public immutable depositSize;
 
@@ -43,7 +44,7 @@ abstract contract ZKPool is IncrementalMerkleTree {
         uint256 _newLeaf
     )
         public
-        isValidProof(_proof, _root, _withdrawAmount, _nullifier, _newLeaf)
+        isValidProof(_proof, _withdrawAmount, _root, _nullifier, _newLeaf)
     {
         nullifiers[_nullifier] = true;
         emit NullifierAdd(_nullifier);
@@ -110,21 +111,15 @@ abstract contract ZKPool is IncrementalMerkleTree {
             "The leaf is larger than the field"
         );
 
-        uint256[4] memory publicSignals =
-            [_withdrawAmount, _root, _nullifier, _newLeaf];
+        uint256[4] memory publicSignals = [_nullifier, _newLeaf, _withdrawAmount, _root];
 
-        (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) =
-            unpackProof(_proof);
+        (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) = unpackProof(_proof);
 
-
-
-        // TODO: Down here
-/*
         require(
             verifyProof(a, b, c, publicSignals),
-            "Semaphore: invalid proof"
+            "The proof is invalid"
         );
-        */
+        console.log("IS verified");
 
         _;
     }

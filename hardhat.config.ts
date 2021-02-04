@@ -51,7 +51,7 @@ module.exports = {
 };
 
 const config: HardhatUserConfig = {
-
+	
 }
 
 export default config;

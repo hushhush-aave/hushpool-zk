@@ -15,7 +15,7 @@ for each
 node ./test.js
 ```
 
-
+https://github.com/iden3/snarkjs
 
 
 # Prepare powers of tau before circuits
@@ -45,7 +45,12 @@ snarkjs zkey contribute withdraw_0000.zkey withdraw_final.zkey --name="1st Contr
 
 # Export the verification key
 snarkjs zkey export verificationkey withdraw_final.zkey verification_key.json
+
+# Export a solidity verifier
+snarkjs zkey export solidityverifier withdraw_final.zkey withdrawVerifier.sol
 ```
+
+
 
 # Generate and test proof from input.json
 ```bash
@@ -53,3 +58,9 @@ snarkjs wtns calculate withdraw.wasm input.json witness.wtns
 snarkjs groth16 prove withdraw_final.zkey witness.wtns proof.json public.json
 snarkjs groth16 verify verification_key.json public.json proof.json
 ```
+
+
+
+// It seems like the major issue is how to format it.
+
+https://github.com/kendricktan/hello-world-zk-dapp/blob/master/packages/scripts/index.js
