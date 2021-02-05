@@ -76,16 +76,17 @@ exports.buildTree = (depth, commitments) => {
     return tree;
 }
 
-exports.getProof = (oldLeaf, index, tree, withdrawAmount, fee, receiver) => {
+exports.getProof = (oldLeaf, index, tree, withdrawAmount, fee, receiver, wasm = "./zk-proofs/hush-withdraw/withdraw.wasm", pkey = "./zk-proofs/hush-withdraw/withdraw_final.zkey") => {
     return new Promise(async function(resolve, reject){
         let { input, newLeaf } = exports.createInput(oldLeaf, index, withdrawAmount, receiver, fee, tree);
 
-        const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, "./zk-proofs/hush-withdraw/withdraw.wasm", "./zk-proofs/hush-withdraw/withdraw_final.zkey");
+        // const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, "./zk-proofs/hush-withdraw/withdraw.wasm", "./zk-proofs/hush-withdraw/withdraw_final.zkey");
+        const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, wasm, pkey);
     
         let solidityProof = exports.getSolidityProofArray(proof);
         let soliditySignals = exports.getSoliditySignalsArray(publicSignals);
     
-        resolve({ solidityProof, soliditySignals, newLeaf });    
+        resolve({ proof, publicSignals, solidityProof, soliditySignals, newLeaf });    
     });
 }
 

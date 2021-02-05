@@ -38,13 +38,13 @@ module.exports = {
 			}
 		]
 	},
-	networks: {
+/*	networks: {
 		hardhat: {
 			forking: {
 				url: "https://mainnet.infura.io/v3/e76402c868ca42f0a2871cb64b9eb0ca"
 			}
 		}
-	},
+	},*/
 	mocha: {
 		timeout: 60000
 	}

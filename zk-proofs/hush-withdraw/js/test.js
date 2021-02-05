@@ -70,7 +70,15 @@ async function run() {
     for (let index = 0; index < 1; index++) {
         let oldLeaf = leafs[index];
 
-        let { proof, publicSignals, newLeaf } = await createProof(oldLeaf, index, tree, receiverAddr, true);
+        let maxVal = BigInt("21888242871839275222246405745257275088548364400416034343698204186575808495617");
+        let maxVal128 = BigInt("340282366920938463463374607431768211455");    
+
+        let _fee = BigInt(5);
+        let _withdrawAmount = maxVal128;// BigInt(2500);
+
+        let _wasm = "./../withdraw.wasm";
+        let _pkey = "./../withdraw_final.zkey";
+        let { proof, publicSignals, newLeaf } = await hush.getProof(oldLeaf, index, tree, _withdrawAmount, _fee, receiverAddr, wasm=_wasm, pkey = _pkey);
 
         let nullifier = publicSignals[0];
         let newCommitment = publicSignals[1];
@@ -83,7 +91,7 @@ async function run() {
             continue;
         } else {
             if (isValid) {
-                console.log("Accept proof. Spend (", oldLeaf.balance.toString(), "), withdraw ", withdrawAmount.toString(), "create (", newLeaf.balance.toString(), "):", newCommitment);
+                console.log("Accept proof. Spend (", oldLeaf.balance.toString(), "), withdraw ", (_withdrawAmount + _fee).toString(), "create (", newLeaf.balance.toString(), "):", newCommitment);
                 nullifiers[nullifier] = true;
             } else {
                 console.log("Reject proof for ", index);
