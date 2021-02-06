@@ -75,7 +75,6 @@ describe("Aave ZKPool", function () {
         console.log( (await user.getAddress()).toString(), "has", scaledBalance.toString(), "scaled");
         console.log( (await user2.getAddress()).toString(), "has", scaledBalance2.toString(), "scaled");
         console.log( (zkpool.address).toString(), "has", poolscaledBalance.toString(), "scaled");
-
     }
 
     beforeEach(async function () {

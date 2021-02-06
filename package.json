@@ -12,6 +12,8 @@
 		"ethers": "^5.0.24",
 		"ffjavascript": "^0.2.34",
 		"hardhat": "^2.0.7",
+		"hardhat-deploy": "^0.7.0-beta.44",
+		"hardhat-deploy-ethers": "^0.3.0-beta.7",
 		"random-bigint": "0.0.1",
 		"snarkjs": "^0.3.57",
 		"ts-node": "^9.1.1",
