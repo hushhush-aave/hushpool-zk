@@ -1,3 +1,8 @@
+# Time used fighting fires, not much readme, mb - Lasse
+
+
+
+
 # Hushpool-zk
 The Hushpool by hush hush is a pool for Aave aTokens, where a depositor can withdraw anonymously, at any point in time. 
 
