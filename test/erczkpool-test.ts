@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { BigNumber, Contract, Signer } from "ethers";
 
 import * as Hush from "./../zk-proofs/hush-withdraw/js/hush-js";
-import * as Addr from "./../addresses";
+//import * as Addr from "./../addresses";
 //const websnarkUtils = require("websnark/tools/stringifybigint");
 
 //const snarkjs = require("snarkjs");
@@ -67,8 +67,8 @@ describe("ERC20 ZKPool", function () {
         let isDeployed = false;
 
         if (isDeployed) {
-            token = await ethers.getContractAt("TestERC20", Addr.getERC20Token(), owner);            
-            pool = await ethers.getContractAt("ERCZKPool", Addr.getERCZKPool(), owner);
+//            token = await ethers.getContractAt("TestERC20", Addr.getERC20Token(), owner);            
+//            pool = await ethers.getContractAt("ERCZKPool", Addr.getERCZKPool(), owner);
         } else {
             const MIMCLibrary = await ethers.getContractFactory(abi, bytecode, owner);
             let mimc = await MIMCLibrary.deploy();
