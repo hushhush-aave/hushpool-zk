@@ -2,7 +2,6 @@ const mimcjs = require("./mimcsponge.js");
 const random = require('random-bigint');
 const snarkjs = require("snarkjs");
 
-
 exports.getZeroValue = () => {
     // uint256(keccak256(abi.encodePacked("HushHush"))) % SNARK_SCALAR_FIELD;
     let current_zero_value = BigInt('10040938200627430310828075205244513358216211203724055178857443267945086138226');
@@ -20,6 +19,23 @@ exports.createLeaf = (balance) => {
         balance: balance,
     };
 }
+
+exports.stringifyLeaf = (leaf) => {
+    return {
+        secret: leaf.secret.toString(),
+        nonce: leaf.nonce.toString(),
+        balance: leaf.balance.toString(),
+    };
+}
+
+exports.destringifyLeaf = (leaf) => {
+    return {
+        secret: BigInt(leaf.secret.toString()),
+        nonce: BigInt(leaf.nonce.toString()),
+        balance: BigInt(leaf.balance.toString()),
+    };
+}
+
 
 exports.getInnerCommitmentFromLeaf = (leaf) => {
     return exports.getInnerCommitment(leaf.secret, leaf.nonce);
@@ -82,7 +98,7 @@ exports.getProof = (oldLeaf, index, tree, withdrawAmount, fee, receiver, wasm = 
 
         // const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, "./zk-proofs/hush-withdraw/withdraw.wasm", "./zk-proofs/hush-withdraw/withdraw_final.zkey");
         const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, wasm, pkey);
-    
+        
         let solidityProof = exports.getSolidityProofArray(proof);
         let soliditySignals = exports.getSoliditySignalsArray(publicSignals);
     
@@ -119,7 +135,7 @@ exports.createInput = (oldLeaf, index, withdrawAmount, receiverAddr, fee, tree) 
     let pathIndices = [];
 
     let currVal = exports.getCommitment(oldLeaf.balance, oldLeaf.secret, oldLeaf.nonce);
-    let currIndex = index;
+    let currIndex =  parseInt(index.toString()); //TODO: THis is not the best xD
 
     let layers = tree.layers;
 
@@ -154,7 +170,7 @@ exports.createInput = (oldLeaf, index, withdrawAmount, receiverAddr, fee, tree) 
         "oldSecret": oldLeaf.secret.toString(),
         "oldNonce": oldLeaf.nonce.toString(),
         "oldBalance": oldLeaf.balance.toString(),
-        "index": index,
+        "index": index.toString(),
         "pathElements": path.map(element => element.toString()),
         "secret": newLeaf.secret.toString(),
         "nonce": newLeaf.nonce.toString(),

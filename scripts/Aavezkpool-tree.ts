@@ -1,5 +1,4 @@
 import { ethers } from "hardhat";
-import { isConstructorDeclaration } from "typescript";
 import * as Addr from "./../addresses";
 import * as Hush from "./../zk-proofs/hush-withdraw/js/hush-js";
 
@@ -52,14 +51,16 @@ async function main() {
     console.log("Pool balance : ", (await aToken.balanceOf(pool.address)).toString());
     console.log("receiver balance: ", (await aToken.scaledBalanceOf(addrString)).toString());
 
-
-    return;
+    // return
 
     await weth.connect(user).deposit({value: getWei("0.015"), gasLimit: 900000});
     console.log("\t User ");
     await weth.connect(user).approve(lendingPool.address, getWei("0.015"));
     await lendingPool.connect(user).deposit(weth.address, getWei("0.015"), await user.getAddress(), 0);
     await aToken.connect(user).approve(pool.address, getWei("1"));
+
+    return;
+
 
     let scaledBalanceUser = await aToken.scaledBalanceOf(await user.getAddress());
     console.log("User scaled balance: ", scaledBalanceUser.toString());

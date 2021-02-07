@@ -1,25 +1,26 @@
 {
 	"name": "hardhat-project",
-	"devDependencies": {
+	"dependencies": {
 		"@nomiclabs/hardhat-ethers": "^2.0.1",
 		"@nomiclabs/hardhat-waffle": "^2.0.1",
-		"@types/chai": "^4.2.14",
-		"@types/mocha": "^8.2.0",
-		"@types/node": "^14.14.21",
+		"@types/minimist": "^1.2.1",
+		"@types/node": "^14.14.25",
 		"chai": "^4.2.0",
+		"chalk": "^2.4.2",
 		"circomlib": "^0.4.1",
-		"ethereum-waffle": "^3.2.1",
-		"ethers": "^5.0.24",
+		"clear": "^0.1.0",
+		"clui": "^0.3.6",
+		"configstore": "^5.0.1",
+		"ethers": "^5.0.29",
 		"ffjavascript": "^0.2.34",
-		"hardhat": "^2.0.7",
-		"hardhat-deploy": "^0.7.0-beta.44",
-		"hardhat-deploy-ethers": "^0.3.0-beta.7",
+		"figlet": "^1.5.0",
+		"hardhat": "^2.0.8",
+		"inquirer": "^7.3.3",
+		"minimist": "^1.2.5",
 		"random-bigint": "0.0.1",
 		"snarkjs": "^0.3.57",
 		"ts-node": "^9.1.1",
 		"typescript": "^4.1.3",
-		"wasmsnark": "^0.0.10",
-		"web3-utils": "^1.3.3",
-		"websnark": "^0.0.5"
+		"web3-utils": "^1.3.3"
 	}
 }

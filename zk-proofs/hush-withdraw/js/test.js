@@ -3,49 +3,6 @@ const hush = require("./hush-js.js");
 const snarkjs = require("snarkjs");
 const fs = require("fs");
 
-const websnarkUtils = require("websnark/tools/stringifybigint");
-
-async function createProof(oldLeaf, index, tree, receiver, show = false) {
-    /**
-     * What if we try to withdraw max - 5, and then let the fee be 5. The sum will be 0. Something need to be evaluated here.
-     * Seems like we have to care of this inside the solidity. 
-     */
-    let maxVal = BigInt("21888242871839275222246405745257275088548364400416034343698204186575808495617");
-    let maxVal128 = BigInt("340282366920938463463374607431768211455");
-    console.log("Max value: ", maxVal);
-    let withdrawAmount = hush.getRandom(4);
-    //withdrawAmount = maxVal128; //oldLeaf.balance;// maxVal - BigInt(50);
-    let fee = BigInt(5);// maxVal - BigInt(withdrawAmount) + BigInt(2);
-    console.log("Old balance: ", oldLeaf.balance);
-    console.log("Withdraw amount: ", withdrawAmount);   
-    let totWithdraw = withdrawAmount + fee;
-    let newBalance = oldLeaf.balance - totWithdraw;
-    console.log("NewBalance: ", newBalance);
-    console.log(totWithdraw);
-    console.log(maxVal)
-    
-    if (totWithdraw > oldLeaf.balance){
-        console.log("THIS SHOULD FAIL");
-    }
-
-    let newLeaf = hush.createLeaf(newBalance);
-
-    let input = hush.createInput(oldLeaf, index, newLeaf, receiver, fee, tree);
-
-    if (show) {
-        console.log("Input: ", JSON.stringify(input, null, 4));
-    }
-
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(input, "../withdraw.wasm", "../withdraw_final.zkey");
-
-    if (show) {
-        console.log("Proof: ", JSON.stringify(proof, null, 4));
-        console.log("PublicSignals: ", JSON.stringify(publicSignals, null, 4));
-    }
-
-    return { proof, publicSignals, newLeaf };
-}
-
 async function run() {
     let addrString = "0xD81523Da11b9A55cB1b39f08bd59319E5143A910";
     let receiverAddr = BigInt(addrString);
@@ -74,7 +31,7 @@ async function run() {
         let maxVal128 = BigInt("340282366920938463463374607431768211455");    
 
         let _fee = BigInt(5);
-        let _withdrawAmount = maxVal128;// BigInt(2500);
+        let _withdrawAmount = BigInt(25500);// maxVal128;// BigInt(2500);
 
         let _wasm = "./../withdraw.wasm";
         let _pkey = "./../withdraw_final.zkey";
