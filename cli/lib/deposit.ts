@@ -1,16 +1,9 @@
 import { ethers } from "hardhat";
 import chalk from 'chalk';
-import figlet from 'figlet';
 
-const queries = require('./inquirer');
+import {askWithdraw} from './inquirer';
 
-const KOVAN_ADDRESSES = {
-    "weth": "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
-    "aweth": "0x87b1f4cf9BD63f7BBD3eE1aD04E8F52540349347",
-    "dataprovider": "0x3c73A5E5785cAC854D468F727c606C07488a29D6",
-    "lendingpool": "0xE0fBa4Fc209b4948668006B2bE61711b7f465bAe",
-    "aavepool": "0x1631FFf000DF62c63A03E420c9627bc76eC562b7",
-}
+import {KOVAN_ADDRESSES} from '../../utils/addresses';
 
 const hush = require("../../zk-proofs/hush-withdraw/js/hush-js.js");
 
@@ -112,16 +105,23 @@ async function deposit_create() {
     console.log(`Pool deposit size ${formatVal(depositAmount)}`);
     console.log(`Pool contains ${poolSize.toString()} elements`);
 
-    let val = getWei("0.015");
-    await weth.connect(owner).deposit({ value: val});
-    console.log(`\t User swapped ${formatVal(val)} eth -> weth`);
-    await weth.connect(owner).approve(lendingPool.address, val, { gasPrice: 15000000000, gasLimit: 900000 });
-    console.log("\t User approved lendingpool to spend weth");
-    await lendingPool.connect(owner).deposit(weth.address, val, await owner.getAddress(), 0, { gasPrice: 15000000000, gasLimit: 900000 });
-    console.log("\t User deposited weth into Aave");
-    await aToken.connect(owner).approve(pool.address, getWei("1"), { gasPrice: 15000000000, gasLimit: 900000 });
-    console.log("\t User approved zkpool to spend aWeth");
+    let allowance = await aToken.allowance(await owner.getAddress(), pool.address);
+    console.log("User approval: ", formatVal(allowance.toString()));
 
+    let val = getWei("0.1");
+    // TODO: Here for making it ready!
+    let prepare = false;
+    if (prepare){
+        await weth.connect(owner).deposit({ value: val});
+        console.log(`\t User swapped ${formatVal(val)} eth -> weth`);
+        await weth.connect(owner).approve(lendingPool.address, val, { gasPrice: 15000000000, gasLimit: 900000 });
+        console.log("\t User approved lendingpool to spend weth");
+        await lendingPool.connect(owner).deposit(weth.address, val, await owner.getAddress(), 0, { gasPrice: 15000000000, gasLimit: 900000 });
+        console.log("\t User deposited weth into Aave");
+        await aToken.connect(owner).approve(pool.address, getWei("1"), { gasPrice: 15000000000, gasLimit: 900000 });
+        console.log("\t User approved zkpool to spend aWeth");
+        return;
+    }
     let scaledBalanceUser = await aToken.scaledBalanceOf(await owner.getAddress());
     console.log("User scaled balance: ", formatVal(scaledBalanceUser.toString()));
     //let allowance = await aToken.allowance(await owner.getAddress(), pool.address);
@@ -163,13 +163,14 @@ async function deposit_create() {
     commits.push(freshCommit);
     tree = hush.buildTree(3, commits);
 
-    let tx = await pool.connect(owner).deposit(freshInner, { gasPrice: 15000000000, gasLimit: 900000 });
-    console.log(chalk.bold("Tx hash: ", chalk.green(tx["hash"])));
+    let tx = await pool.connect(owner).deposit(freshInner, { gasPrice: 50000000000, gasLimit: 900000 });
+    console.log(chalk.bold("Transaction sent. Tx hash: ", chalk.green(tx["hash"])));
+    console.log("Commitment hash: ", freshInner.toString(16));
     console.log("Leaf hash: ", freshCommit.toString(16));
     //console.log("Expected root: ", tree.root.toString(16));
     //console.log("Real root    : ", (await pool.root()).toString());
-    console.log("Scaled Pool balance : ", formatVal((await aToken.scaledBalanceOf(pool.address))));
-    console.log("Pool balance : ", formatVal((await aToken.balanceOf(pool.address))));
+    //console.log("Scaled Pool balance : ", formatVal((await aToken.scaledBalanceOf(pool.address))));
+    //console.log("Pool balance : ", formatVal((await aToken.balanceOf(pool.address))));
 }
 
 
@@ -183,7 +184,7 @@ async function initWithdraw() {
         });
         choices.push(chalk.red("Cancel"));
 
-        let pick = await queries.askWithdraw(choices);
+        let pick = await askWithdraw(choices);
         if (pick["index"] == choices[choices.length - 1]) {
             return -1;
         }
@@ -201,7 +202,7 @@ async function withdrawStep2(_spendIndex, _leaf) {
     let fee = BigInt(getWei("0.0005").toString());
     let receiver = "0xD81523Da11b9A55cB1b39f08bd59319E5143A910";
 
-    console.log("Here you should have picked amounts, but not done yet, using amount:", formatVal(amount), "fee:", formatVal(fee), "receiver:", receiver);
+    console.log("Here you would have picked amounts, but for test, using amount:", formatVal(amount), "fee:", formatVal(fee), "receiver:", receiver);
 
     return await withdraw(_spendIndex, hush.destringifyLeaf(_leaf), amount, fee, receiver);
 }
@@ -268,7 +269,7 @@ async function withdraw(_spendIndex, _withdrawLeaf, _amount, _fee, _receiver) {
     console.log("Raleying withdraw through: ", (await relayer.getAddress()));
     console.log("Pre receiver balance: ", formatVal((await aToken.scaledBalanceOf(_receiver))));
     console.log("Pre Pool balance : ", formatVal((await aToken.balanceOf(pool.address))));
-    let tx = await pool.connect(relayer).withdraw(_receiver, solidityProof, soliditySignals, { gasPrice: 15000000000, gasLimit: 900000 });
+    let tx = await pool.connect(relayer).withdraw(_receiver, solidityProof, soliditySignals, { gasPrice: 50000000000, gasLimit: 900000 });
     console.log(chalk.bold("Tx hash: ", chalk.green(tx["hash"])));
 
     commits.push(hush.getCommitmentFromLeaf(newLeaf));
@@ -287,4 +288,4 @@ async function withdraw(_spendIndex, _withdrawLeaf, _amount, _fee, _receiver) {
 
 
 
-export {KOVAN_ADDRESSES, deposit_show, deposit_show_old, deposit_create, initWithdraw, deposit_clear};
+export {deposit_show, deposit_show_old, deposit_create, initWithdraw, deposit_clear};

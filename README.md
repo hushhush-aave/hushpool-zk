@@ -1,6 +1,22 @@
 # Hushpool-zk
 The Hushpool by hush hush is a pool for Aave aTokens, where a depositor can withdraw anonymously, at any point in time. 
 
+Note that this repository is only to showcase that such a thing is possible, and is not to be used in production. 
+
+
+
+
+`utils/addresses.ts` contains a object with addresses for the contract on the Kovan network. This file is to be updated when deploying a fresh version.
+
+# Running tests
+
+
+
+# Running scripts
+
+## ERC20 ZKPool
+
+
 
 # Outline
 We are greatly inspired by Tornadocash, and the work in Semaphore.

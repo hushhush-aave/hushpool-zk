@@ -2,14 +2,16 @@ const chalk = require('chalk');
 const clear = require('clear');
 const figlet = require('figlet');
 
-const queries = require('./lib/inquirer');
-import {KOVAN_ADDRESSES, deposit_clear, deposit_show, deposit_show_old, deposit_create, initWithdraw } from './lib/deposit';
+//const queries = require('./lib/inquirer');
+
+import {askTask, askExit} from './lib/inquirer';
+
+import {KOVAN_ADDRESSES} from './../utils/addresses';
+
+import {deposit_clear, deposit_show, deposit_show_old, deposit_create, initWithdraw } from './lib/deposit';
 
 const ConfigStore = require('configstore');
 const conf = new ConfigStore('hushhush');
-
-const CLI = require('clui');
-const Spinner = CLI.Spinner;
 
 
 //deposit_clear();
@@ -29,13 +31,13 @@ async function start() {
 
         let tasks = ["Deposit", "Show deposits", "Show old deposits", "Withdraw", "Exit"];
 
-        let res = await queries.askTask(tasks);
+        let res = await askTask(tasks);
         let action = res["command"];
 
         let handleResponse = await handleAction(action);
 
         console.log();
-        let exRes = await queries.askExit();
+        let exRes = await askExit();
         if (exRes["command"] == "Exit") {
             process.exit(0);
         }

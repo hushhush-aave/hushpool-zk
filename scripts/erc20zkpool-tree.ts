@@ -1,12 +1,17 @@
 import { ethers } from "hardhat";
-import * as Addr from "./../addresses";
 import * as Hush from "./../zk-proofs/hush-withdraw/js/hush-js";
+
+//import * as Addr from "./../addresses";
+import { KOVAN_ADDRESSES } from './../utils/addresses';
+
 
 let getWei = (eth: string) => {
     return ethers.utils.parseEther(eth);
 };
 
 /**
+ * Will retrieve the commitments in thre tree.
+ * Create a deposit 
  * This code will look at the current state. 
  * Then deposit into the tree
  * Then withdraw from it.
@@ -18,13 +23,16 @@ async function main() {
 
     let addrString = "0xD81523Da11b9A55cB1b39f08bd59319E5143A910";
     let receiverAddr = BigInt(addrString);
+    console.log("How far to we get!");
 
-    let token = await ethers.getContractAt("TestERC20", Addr.getERC20Token(), owner);
-    let pool = await ethers.getContractAt("ERCZKPool", Addr.getERCZKPool(), owner);
+    let token = await ethers.getContractAt("TestERC20", KOVAN_ADDRESSES["erc20"], owner);
+    let pool = await ethers.getContractAt("ERCZKPool", KOVAN_ADDRESSES["erczkpool"], owner);
     let depositAmount = await pool.depositSize();
 
     console.log("token at: ", token.address);
     console.log("pool at: ", pool.address);
+
+    await token.mint(await user.getAddress(), getWei("10000"));
 
     console.log("user balance: ", (await token.balanceOf(await user.getAddress())).toString());
     let allowance = await token.allowance(await user.getAddress(), pool.address);
@@ -34,7 +42,7 @@ async function main() {
         console.log("Approving", depositAmount.toString());
         await token.connect(user).approve(pool.address, depositAmount);
         allowance = await token.allowance(await user.getAddress(), pool.address);
-        console.log("user approval: ", allowance.toString());    
+        console.log("user approval: ", allowance.toString());
     }
 
     let filter = pool.filters.LeafInsertion();
@@ -81,7 +89,7 @@ async function main() {
     console.log("Expected root: ", tree.root.toString());
 
     let index = commits.length - 1;
-    await pool.connect(user).deposit(freshInner);
+    await pool.connect(user).deposit(freshInner, { gasPrice: 15000000000, gasLimit: 900000 });
 
     console.log("Real root    : ", (await pool.root()).toString());
     console.log("Pool balance : ", (await token.balanceOf(pool.address)).toString());
@@ -93,7 +101,7 @@ async function main() {
     let { solidityProof, soliditySignals, newLeaf } = await Hush.getProof(freshLeaf, index, tree, _withdrawAmount, _fee, receiverAddr);
 
     console.log("Pre receiver balance: ", (await token.balanceOf(addrString)).toString());
-    await pool.connect(owner).withdraw(addrString, solidityProof, soliditySignals);
+    await pool.connect(owner).withdraw(addrString, solidityProof, soliditySignals, { gasPrice: 15000000000, gasLimit: 900000 });
 
     commits.push(Hush.getCommitmentFromLeaf(newLeaf));
     tree = Hush.buildTree(3, commits);

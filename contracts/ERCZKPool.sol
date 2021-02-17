@@ -14,8 +14,7 @@ import {
 
 import {ZKPool} from "./ZKPool.sol";
 
-// In this extension, we have to take care of the actual tokens
-
+// Hush Hush ERC20 pool
 contract ERCZKPool is ZKPool {
     using SafeERC20 for IERC20;
 
